@@ -25,24 +25,25 @@ var nr = {};
 
   this.googleTranslate = function(str, from, to, callback) {
     var reqUrl = googleTransUrl.format(encodeURI(str), from, to);
-    $.ajax({
-      type: "GET",
-      url: reqUrl,
-      dataType: 'text',
-      success: function(ret) {
-        var rstr = '';
-        var m = ret.match(/\[\[(\[\"(.+?)\",.+?\"\],?)+\]/);
-        m = m[0].split('],');
-        for (var i = 0; i < m.length; i++) {
-          try {
-            rstr += m[i].match(/\[\"(.+?[^\\])\",/)[1];
-          } catch (e) {}
+    var ajax = new XMLHttpRequest();
+    ajax.onreadystatechange = function() {
+      if (ajax.readyState == 4) {
+        if (ajax.status == 200 && ajax.responseText != null) {
+          var ret = '';
+          var m = ajax.responseText.match(/\[\[(\[\"(.+?)\",.+?\"\],?)+\]/);
+          m = m[0].split('],');
+          for (var i = 0; i < m.length; i++) {
+            try {
+              ret += m[i].match(/\[\"(.+?[^\\])\",/)[1];
+            } catch (e) {}
+          }
+          callback(ret);
+        } else {
+          callback(null);
         }
-        callback(rstr);
-      },
-      error: function(req, st, er) {
-        callback(null);
       }
-    });
+    };
+    ajax.open('GET', reqUrl, true);
+    ajax.send();
   };
 }}).apply(nr);
