@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Tools for Paper</title>
+  <link href="../bootstrap/css/bootstrap.min.css" rel="stylesheet" media="screen">
+  <script src="http://code.jquery.com/jquery.min.js" type="text/javascript"></script>
+  <script src="../bootstrap/js/bootstrap.min.js" type="text/javascript"></script>
+  <script src="../js/jquery.cookie.js" type="text/javascript"></script>
+  <script src="../js/jquery.tmpl.min.js" type="text/javascript"></script>
+  <script src="nr.js?ver=2.8.9" type="text/javascript"></script>
+  <style type="text/css">
+  body {
+    padding-top: 60px;
+  }
+  .jumbotron {
+    margin: 60px 0;
+    text-align: center;
+  }
+  .jumbotron h1 {
+    font-size: 72px;
+    line-height: 1;
+  }
+  .url-input {
+    font-size:20px !important;
+    height: 40px !important;
+  }
+  #footer {
+    padding-top: 20px;
+    text-align: center;
+  }
+  
+  .navbar-search {
+    position: relative;
+  }  
+  .navbar-search .search-query {
+    padding-left: 29px;
+  }
+  .navbar-search .icon-search {
+    position: absolute;
+    top: 7px;
+    left: 11px;
+    background-image: url(../bootstrap/img/glyphicons-halflings-white.png);
+  }
+  .navbar-search .search-query:focus, .navbar-search .search-query.focused {
+    padding-left: 30px !important;
+  }
+  .search-query:focus + .icon-search {
+    background-image: url(../bootstrap/img/glyphicons-halflings.png);
+  }
+  </style>
+  <script type="text/javascript">
+  $(function(){
+    $('#conf-save').click(function(){
+      $.cookie('account-key', $('#account-key').val());
+      $.cookie('trans-method', $('input[name="tmethod"]:checked').val());
+      $('#settingModal').modal('hide');
+    });
+    $('#account-key').keyup(function(){
+      if ($('#account-key').val().length != 0) {
+        $('#tmethod-bing').removeAttr('disabled');
+      } else {
+        $('#tmethod-bing').attr('disabled', 'disabled');
+        if ($('input[name="tmethod"]:checked').val() == 'bing') {
+          $('#tmethod-google').attr('checked', 'checked');
+        }
+      }
+    });
+    $('.nr-reset').click(function(){
+      $('#output-field').fadeOut('fast', function(){
+        $('#line').html('');
+        $('textarea').val('');
+        $('#input-url').val('');
+        lines = new Array();
+        $('#input-form,#jumbo-logo').fadeIn();
+      });
+    });
+    $('#search-query').keypress(function(e){
+      if (e.keyCode == 13) {
+        location.href = 'http://scholar.google.co.jp/scholar?hl=ja&q={0}'.format(encodeURI(e.target.value));
+        return false;
+      }
+    });
+    
+    /* Translation */
+    var lines = new Array();
+    function updateJa(i, ja) {
+      lines[i].ja = ja;
+      $('#raw-to').val('');
+      $('#md-text').val('');
+      for (var j = 0; j < lines.length; j++) {
+        $('#raw-to').val($('#raw-to').val() + lines[j].ja + '\n');
+        $('#md-text').val($('#md-text').val() + lines[j].src + '\n> ' + lines[j].ja + '\n\n');
+      }
+    };
+    $('#do-translate').click(function(){
+      $('#do-translate').button('loading');
+      
+      if ($('#input-tab > li[class*="active"]').text() == 'URL') {
+        nr.getAbstractFromURL($('#input-url').val(), function(ret){
+          if (typeof ret === 'undefined') {
+            // no supported url
+            $('#alert-template').tmpl({Message: 'This URL is not supported.'}).appendTo('#url-alert').alert();
+            $('#do-translate').button('reset');
+            return;
+          } else if (ret === null) {
+            // fetch error
+            $('#alert-template').tmpl({Message: 'Fetching contents failed.'}).appendTo('#url-alert').alert();
+            $('#do-translate').button('reset');
+            return;
+          } else {
+            updateLines(ret);
+          }
+        });
+      } else {
+        updateLines($('#plain-text').val());
+      }
+    });
+    
+    function updateLines(str) {
+      var ls = nr.getLines(str);
+      
+      for (var i = 0; i < ls.length; i++) {
+        lines.push({src: ls[i], ja: ''});
+        $('#line-template').tmpl({No: i, Text: ls[i].htmlEscape()}).appendTo('#line');
+        $('#raw-from').val($('#raw-from').val() + ls[i] + '\n');
+        with({i: i}) {
+          nr.googleTranslate(ls[i], 'en', 'ja', function(ja){
+            if (ja != null) {
+              updateJa(i, ja);
+              $('<blockquote />').text(ja).appendTo("#l"+i).hide()
+                .stop(true, true)
+                .animate({
+                  height: 'show',
+                  opacity: 'show'
+                }, 'fast');
+            }
+          });
+        }
+      }
+      
+      $('#input-form,#jumbo-logo').fadeOut('fast', function(){
+        $('#output-field').fadeIn();
+        $('#do-translate').button('reset');
+      });
+    };
+    
+    /* Initialize */
+    $('#account-key').val($.cookie('account-key'));
+    if ($('#account-key').val() != '') {
+      $('#tmethod-bing').removeAttr('disabled');
+    }
+    if (!nr.nullOrMatch($.cookie('trans-method'), 'google')) {
+      $('#tmethod-google').removeAttr('checked');
+      $('#tmethod-bing').attr('checked', 'checked');
+    }
+    var t = window.location.parseQuery('t');
+    if (t != null) {
+      updateLines(t);
+    }
+  });
+  
+  function doTrans(e) {
+    var t = $(e).parents('p').text();
+    
+    if (nr.nullOrMatch($.cookie('trans-method'), 'google')) {
+      nr.googleTranslateWithNewWindow(t);
+    } else {
+      /* translate with Microsoft Translate */
+      var tw = nr.microsoftTranslate(t);
+    }
+  };
+  
+  function mouseOver(e) {
+    $(e).find('i').fadeIn('fast');
+  };
+  function mouseOut(e) {
+    $(e).find('i').fadeOut('fast');
+  };
+  </script>
+</head>
+
+<body>
+<!-- Navbar -->
+<div class="navbar navbar-inverse navbar-fixed-top">
+<div class="navbar-inner">
+<div class="container">
+  <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+    <span class="icon-bar"></span>
+    <span class="icon-bar"></span>
+    <span class="icon-bar"></span>
+  </a>
+  <a class="brand" href="#">Tools for Paper</a>
+  <div class="nav-collapse">
+  <ul class="nav">
+    <li class="active">
+      <a href="#" class="nr-reset"><i class="icon-indent-left icon-white"></i> Newline remover</a>
+    </li>
+  </ul>
+  <ul class="nav pull-right">
+    <li class="pull-right">
+      <a href="#settingModal" data-toggle="modal"><i class="icon-cog icon-white"></i>Settings</a>
+    </li>
+  </ul>
+  <form class="navbar-search pull-right">
+    <input id="search-query" type="text" class="search-query span4" placeholder="Article Search">
+    <div class="icon-search"></div>
+  </form>
+  </div>
+</div>
+</div>
+</div>
+<!-- /Navbar -->
+
+<div class="container">
+<div id="jumbo-logo" class="jumbotron">
+  <h1>Tools for Paper</h1>
+  <p class="lead">Read more easily and quickly</p>
+</div>
+<div class="row-fluid">
+<div id="input-form" class="span10 offset1">
+  <ul id="input-tab" class="nav nav-tabs">
+    <li class="active"><a href="#text" data-toggle="tab">Plain Text</a></li>
+    <li><a href="#url" data-toggle="tab">URL</a></li>
+  </ul>
+  <div class="tab-content">
+    <div class="tab-pane fade in active" id="text">
+      <textarea id="plain-text" rows="10" class="span12"></textarea>
+    </div>
+    <div class="tab-pane fade in" id="url">
+      <div id="url-alert"></div>
+      <input id="input-url" class="span12 url-input" type="text" placeholder="URL">
+    </div>
+  </div>
+  <button id="do-translate" class="btn btn-success btn-large btn-block" data-loading-text="処理中...">
+    <i class="icon-indent-left icon-white"></i> 変換
+  </button>
+</div>
+<div id="output-field" class="span10 offset1" style="display:none;">
+  <button id="reset-button" class="btn btn-danger btn-small pull-right nr-reset">
+    <i class="icon-trash icon-white"></i> リセット
+  </button>
+  <div id="result-field">
+    <ul class="nav nav-tabs">
+      <li class="active"><a href="#line" data-toggle="tab">Line</a></li>
+      <li><a href="#raw" data-toggle="tab">Raw</a></li>
+      <li><a href="#md" data-toggle="tab">Markdown</a></li>
+    </ul>
+    <div class="tab-content">
+      <div class="tab-pane fade in active" id="line"></div>
+      <div class="tab-pane fade in" id="raw">
+        <h2>Source</h2>
+        <textarea id="raw-from" rows="10" class="span12"></textarea>
+        <h2>Japanese</h2>
+        <textarea id="raw-to" rows="10" class="span12"></textarea>
+      </div>
+      <div class="tab-pane fade in" id="md">
+        <textarea id="md-text" rows="20" class="span12"></textarea>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+</div>
+
+<div id="footer">
+  <div class="container">
+    <p class="muted credit">&copy; 2012 <a href="http://tokcs.com">frah</a>.</p>
+  </div>
+</div>
+
+<!-- Google Analytics -->
+<script type="text/javascript">
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-36405329-2']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+</script>
+<!-- /Google Analytics -->
+
+</body>
+</html>
+
+
+<!-- Setting modal -->
+<div id="settingModal" class="modal hide fade">
+  <div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+    <h3>Settings</h3>
+  </div>
+  <div class="modal-body">
+    <form>
+      <fieldset>
+        <legend>Translation method</legend>
+        <label class="radio">
+          <input type="radio" id="tmethod-google" name="tmethod" value="google" checked>
+          Redirect to <a href="http://translate.google.com/" target="_blank">Google Translate</a>
+        </label>
+        <label class="radio">
+          <input type="radio" id="tmethod-bing" name="tmethod" value="bing" disabled="disabled">
+          Use <a href="http://translate.google.com/" target="_blank">Microsoft Translator</a>
+        </label>
+        <legend>Microsoft Account Key</legend>
+        <input id="account-key" type="text" class="input-block-level" placeholder="Account Key">
+        <span class="help-block"><a href="http://www.microsofttranslator.com/dev/" target="_blank">Sign up</a></span>
+      </fieldset>
+    </form>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
+    <button id="conf-save" type="button" class="btn btn-primary">Save changes</a>
+  </div>
+</div>
+<!-- /Setting modal -->
+
+<!-- Line Template -->
+<script id="line-template" type="text/x-jquery-tmpl">
+  <div id="l${No}" class="line" onmouseover="mouseOver(this)" onmouseout="mouseOut(this)">
+    <p class="lead">${Text}&nbsp;<a href="#" onClick="doTrans(this);return false;"><i class="icon-share-alt" style="display:none;" title="別ウィンドウでGoogle翻訳を開く"></i></a>
+    </p>
+  </div>
+</script>
+<!-- /Line Template -->
+
+<!-- Alert Template -->
+<script id="alert-template" type="text/x-jquery-tmpl">
+  <div class="alert alert-error fade in">
+    <button type="button" class="close" data-dismiss="alert">&times;</button>
+    ${Message}
+  </div>
+</script>
+<!-- /Alert Template -->
