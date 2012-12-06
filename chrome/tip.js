@@ -5,38 +5,25 @@ var tooltip=function(){
 	var maxw = 300;
 	var speed = 10;
 	var timer = 20;
-	var endalpha = 95;
+	var endalpha = 90;
 	var alpha = 0;
-	var tt,t,c,b,h;
+	var tt,h;
 	var ie = document.all ? true : false;
 	return{
 		show:function(v,w){
 			if(tt == null){
 				tt = document.createElement('div');
 				tt.setAttribute('id',id);
-				t = document.createElement('div');
-				t.setAttribute('id',id + 'top');
-				c = document.createElement('div');
-				c.setAttribute('id',id + 'cont');
-				b = document.createElement('div');
-				b.setAttribute('id',id + 'bot');
-				tt.appendChild(t);
-				tt.appendChild(c);
-				tt.appendChild(b);
 				document.body.appendChild(tt);
 				tt.style.opacity = 0;
 				tt.style.filter = 'alpha(opacity=0)';
 				document.onmousemove = this.pos;
 			}
 			tt.style.display = 'block';
-			c.innerHTML = v;
+			tt.innerHTML = v;
 			tt.style.width = w ? w + 'px' : 'auto';
 			if(!w && ie){
-				t.style.display = 'none';
-				b.style.display = 'none';
 				tt.style.width = tt.offsetWidth;
-				t.style.display = 'block';
-				b.style.display = 'block';
 			}
 			if(tt.offsetWidth > maxw){tt.style.width = maxw + 'px'}
 			h = parseInt(tt.offsetHeight) + top;
