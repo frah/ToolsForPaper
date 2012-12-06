@@ -29,6 +29,9 @@
   chrome.extension.onMessage.addListener(function(req, s, res) {
     if (req.pinit_keyboard_shortcut) {
       open_window(req.text);
+    } else if (req.translation_request) {
+      nr.googleTranslate(req.text, 'en', 'ja', res);
+      return true;
     }
   });
 })();
