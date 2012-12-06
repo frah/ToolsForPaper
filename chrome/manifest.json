@@ -1,0 +1,24 @@
+{
+  "name": "Tools for Thesis",
+  "version": "1.3",
+  "manifest_version": 2,
+  "description": "Read more easily and quickly",
+  "permissions": [
+    "contextMenus",
+    "tabs",
+    "http://*/*",
+    "https://*/*"
+  ],
+  "background": {
+    "scripts": ["background.js"]
+  },
+  "content_scripts": [
+    {
+      "matches": ["http://*/*", "https://*/*"],
+      "js": ["inject.js"]
+    }
+  ],
+  "icons": {
+    "16": "icon16.ico"
+  }
+}
