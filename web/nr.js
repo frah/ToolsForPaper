@@ -1,5 +1,5 @@
 /*!
- * NewLine Remover Library v2.8.9
+ * NewLine Remover Library v2.9.0
  * http://labs.tokcs.com/
  *
  * Copyright 2012 Atsushi OHNO
@@ -33,7 +33,7 @@ window.location.parseQuery = function(key) {
 
 var nr = {};
 (function(){with(this){
-  var ignoreWords = /\d(\.\d)+|e\.g\.|i\.e\.|\.\.\.|et al\.|cf\.|( |^)[A-Z]\./;
+  var ignoreWords = /\d(\.\d)+|e\.g\.|i\.e\.|\.\.\.|et al\.|cf\.|( |^)[A-Z]\.|[Ff]ig\./;
   var correspondURL = /^http(s)?:\/\/((ieeexplore\.ieee\.org))\/.*/;
   var googleTransUrl = 'http://translate.google.com/translate_a/t?client=t&text={0}&hl={1}&sl=auto&tl={2}&multires=1&prev=btn&ssel=0&tsel=4&uptl={2}&alttl={1}&sc=1';
   var proxyPath = 'ba-simple-proxy.php?url={0}&mode=native';
@@ -114,7 +114,7 @@ var nr = {};
   };
   
   this.googleTranslate = function(str, from, to, callback) {
-    var reqUrl = googleTransUrl.format(encodeURI(str), from, to);
+    var reqUrl = googleTransUrl.format(encodeURIComponent(str), from, to);
     var ajax = createHttpRequest();
     ajax.onreadystatechange = function(){
       if (ajax.readyState == 4) {

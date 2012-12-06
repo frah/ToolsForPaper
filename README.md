@@ -2,6 +2,8 @@ Tools for Paper
 ===============
 Read more easily and quickly
 
+http://labs.tokcs.com/nr/
+
 License (MIT)
 -------------
 Copyright (c) 2012 Atsushi OHNO
