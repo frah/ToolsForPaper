@@ -17,10 +17,15 @@
   for (var i = 0; i < ps.length; i++) {
     with ({title : ps[i].getElementsByTagName('h3')[0]}) {
     with ({abst : ps[i].getElementsByClassName('gs_rs')[0]}) {
-      var ttext = title.getElementsByTagName('a')[0].innerHTML.replace(/<\/?.+?>/g, '');
-      var atext = abst.innerHTML.replace(/<\/?.+?>/g, '');
-      update(title, ttext);
-      update(abst, atext);
+      try {
+        var ttext = title.innerHTML.replace(/<span.*<\/span>/g, '');
+        var ttext = ttext.replace(/<\/?.+?>/g, '');
+        update(title, ttext);
+      } catch (e) {}
+      try {
+        var atext = abst.innerHTML.replace(/<\/?.+?>/g, '');
+        update(abst, atext);
+      } catch (e) {}
     }
     }
   }
