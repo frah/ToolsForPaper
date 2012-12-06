@@ -4,7 +4,7 @@ window.addEventListener("keydown", function(e) {
     try {
       var t = window.getSelection().toString();
       if (t != null && t != '') {
-        chrome.extension.sendRequest({
+        chrome.extension.sendMessage({
           "pinit_keyboard_shortcut": true,
           "text": t
         }, function(res) {});

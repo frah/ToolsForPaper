@@ -26,7 +26,7 @@
     }
   );
 
-  chrome.extension.onRequest.addListener(function(req, s, res) {
+  chrome.extension.onMessage.addListener(function(req, s, res) {
     if (req.pinit_keyboard_shortcut) {
       open_window(req.text);
     }
